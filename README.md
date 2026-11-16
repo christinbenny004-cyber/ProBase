@@ -1,4 +1,4 @@
-npo# ProBase Platform – Active Hospitals Management UI
+ Active Hospitals Management UI
 
 A production-quality frontend implementation of the **ProBase Platform – Active Hospitals Dashboard**, built with Next.js (App Router), TypeScript, Tailwind CSS, Lucide React, React Hook Form, and Zod.
 
