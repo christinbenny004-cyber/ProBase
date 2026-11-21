@@ -1,35 +1,33 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Sans } from "next/font/google";
-import { ThemeProvider } from "@/components/theme/ThemeProvider";
+import { Inter, Manrope, Source_Code_Pro } from "next/font/google";
 import "./globals.css";
 
-const ibmPlexSans = IBM_Plex_Sans({
-  variable: "--font-ibm-plex-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "600"],
+  display: "swap",
+});
+
+const manrope = Manrope({
+  variable: "--font-manrope",
+  subsets: ["latin"],
+  weight: ["500", "600"],
+  display: "swap",
+});
+
+const sourceCodePro = Source_Code_Pro({
+  variable: "--font-source-code-pro",
+  subsets: ["latin"],
+  weight: ["500"],
   display: "swap",
 });
 
 export const metadata: Metadata = {
   title: "ProBase Platform – Active Hospitals",
-  description: "Enterprise hospital administration and organisation management platform.",
+  description:
+    "Enterprise hospital administration and organisation management platform.",
 };
-
-const themeInitScript = `
-(function () {
-  try {
-    var stored = localStorage.getItem("probase-theme");
-    var root = document.documentElement;
-    if (stored === "light") {
-      root.classList.remove("dark");
-      root.classList.add("light");
-    } else {
-      root.classList.add("dark");
-      root.classList.remove("light");
-    }
-  } catch (e) {}
-})();
-`;
 
 export default function RootLayout({
   children,
@@ -39,17 +37,13 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      suppressHydrationWarning
-      className={`${ibmPlexSans.variable} h-full dark antialiased`}
+      className={`${inter.variable} ${manrope.variable} ${sourceCodePro.variable} h-full dark antialiased`}
     >
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
-      </head>
       <body
         suppressHydrationWarning
-        className="min-h-full bg-[var(--bg-app)] text-[var(--text-primary)] selection:bg-[#1686D9]/30 selection:text-[var(--text-primary)]"
+        className="min-h-full bg-[#121212] text-white selection:bg-[#1c75b3]/35 selection:text-white"
       >
-        <ThemeProvider>{children}</ThemeProvider>
+        {children}
       </body>
     </html>
   );

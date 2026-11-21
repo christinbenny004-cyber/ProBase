@@ -45,11 +45,12 @@ export function useHospitals() {
   const [search, setSearchState] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [sortBy, setSortBy] = useState<HospitalSortField>("createdAt");
-  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+  const [hasUserSorted, setHasUserSorted] = useState(false);
   const [dateFilter, setDateFilterState] = useState<DateRangeFilter>("all");
   const [viewMode, setViewModeState] = useState<HospitalViewMode>("active");
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSizeState] = useState(10);
+  const [pageSize, setPageSizeState] = useState(50);
 
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -159,6 +160,7 @@ export function useHospitals() {
 
   const handleSort = useCallback(
     (field: HospitalSortField, explicitDirection?: SortDirection) => {
+      setHasUserSorted(true);
       if (explicitDirection) {
         setSortBy(field);
         setSortDirection(explicitDirection);
@@ -247,6 +249,7 @@ export function useHospitals() {
     search,
     sortBy,
     sortDirection,
+    hasUserSorted,
     dateFilter,
     viewMode,
     isLoading,

@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUpDown, Check, ChevronDown } from "lucide-react";
+import { ArrowDownWideNarrow, Check, ChevronDown } from "lucide-react";
 import { Dropdown, DropdownItem } from "@/components/ui/Dropdown";
 import type { HospitalSortField, SortDirection } from "@/types/hospital";
 
@@ -11,12 +11,12 @@ interface SortOption {
 }
 
 const SORT_OPTIONS: SortOption[] = [
-  { label: "Created (Newest first)", field: "createdAt", direction: "desc" },
   { label: "Created (Oldest first)", field: "createdAt", direction: "asc" },
+  { label: "Created (Newest first)", field: "createdAt", direction: "desc" },
   { label: "Hospital name (A–Z)", field: "name", direction: "asc" },
   { label: "Hospital name (Z–A)", field: "name", direction: "desc" },
-  { label: "Organisation ID (Asc)", field: "organisationId", direction: "asc" },
-  { label: "Organisation ID (Desc)", field: "organisationId", direction: "desc" },
+  { label: "Organisation ID (A–Z)", field: "organisationId", direction: "asc" },
+  { label: "Organisation ID (Z–A)", field: "organisationId", direction: "desc" },
   { label: "Administrator (A–Z)", field: "administrator", direction: "asc" },
   { label: "Administrator (Z–A)", field: "administrator", direction: "desc" },
 ];
@@ -40,17 +40,17 @@ export function HospitalSort({
         <button
           type="button"
           onClick={toggle}
-          className="inline-flex h-[34px] items-center gap-2 rounded-md border border-[var(--border-default)] bg-[var(--bg-input)] px-3 text-[13px] font-medium text-[var(--text-body)] transition-colors hover:border-[var(--border-input-hover)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1686D9]"
+          className="inline-flex h-[30px] items-center gap-[6px] rounded-[6px] border border-white/20 bg-[#1a1a1a] px-[10px] font-display text-[14px] font-medium leading-[20px] text-white transition-colors hover:bg-[#242424] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1c75b3]"
         >
-          <ArrowUpDown className="h-3.5 w-3.5 text-[var(--text-subtle)]" />
+          <ArrowDownWideNarrow strokeWidth={1.6} className="h-[14px] w-[14px] text-[#a0a0a0]" />
           <span>Sort</span>
-          <ChevronDown className="h-3.5 w-3.5 text-[var(--text-muted)]" />
+          <ChevronDown strokeWidth={1.6} className="h-[13px] w-[13px] text-[#a0a0a0]" />
         </button>
       )}
     >
       {(close) => (
         <>
-          <div className="px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-[var(--text-muted)]">
+          <div className="px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-[#707070]">
             Sort by
           </div>
           {SORT_OPTIONS.map((option) => {
@@ -67,7 +67,7 @@ export function HospitalSort({
               >
                 <span className="flex items-center justify-between gap-2">
                   <span>{option.label}</span>
-                  {isActive && <Check className="h-3.5 w-3.5 text-[#1686D9]" />}
+                  {isActive && <Check className="h-3.5 w-3.5 text-[#1c75b3]" />}
                 </span>
               </DropdownItem>
             );

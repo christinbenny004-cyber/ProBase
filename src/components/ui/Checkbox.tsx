@@ -27,17 +27,17 @@ export function Checkbox({
       aria-label={ariaLabel}
       onClick={onChange}
       className={cn(
-        "flex h-4 w-4 shrink-0 items-center justify-center rounded-[4px] border transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1686D9] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--bg-surface)]",
+        "flex h-[14px] w-[14px] shrink-0 items-center justify-center rounded-[2px] border transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1c75b3] focus-visible:ring-offset-1 focus-visible:ring-offset-[#121212]",
         checked || indeterminate
-          ? "border-[#1686D9] bg-[#1686D9] text-white"
-          : "border-[#CBD5E1] dark:border-[#3B3F46] bg-transparent hover:border-[#94A3B8] dark:hover:border-[#525862]",
+          ? "border-[#1c75b3] bg-[#1c75b3] text-white"
+          : "border-white/20 bg-[#1a1a1a] hover:border-white/35",
         className
       )}
     >
       {indeterminate ? (
-        <Minus className="h-3 w-3 stroke-[2.5]" />
+        <Minus className="h-2.5 w-2.5 stroke-[2.5]" />
       ) : checked ? (
-        <Check className="h-3 w-3 stroke-[2.5]" />
+        <Check className="h-2.5 w-2.5 stroke-[2.5]" />
       ) : null}
     </button>
   );

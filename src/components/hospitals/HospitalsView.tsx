@@ -1,19 +1,26 @@
 "use client";
 
 import * as React from "react";
-import { AlertCircle, CheckCircle2, X } from "lucide-react";
-import { DeleteHospitalDialog } from "@/components/hospitals/DeleteHospitalDialog";
+import { CheckCircle2, X } from "lucide-react";
 import { HospitalDetailsDialog } from "@/components/hospitals/HospitalDetailsDialog";
-import { HospitalPageHeader } from "@/components/hospitals/HospitalPageHeader";
 import { HospitalPagination } from "@/components/hospitals/HospitalPagination";
 import { HospitalTable } from "@/components/hospitals/HospitalTable";
 import { HospitalToolbar } from "@/components/hospitals/HospitalToolbar";
 import { SetupHospitalDialog } from "@/components/hospitals/SetupHospitalDialog";
-import { WithdrawHospitalDialog } from "@/components/hospitals/WithdrawHospitalDialog";
 import { AppShell } from "@/components/layout/AppShell";
+import { Button } from "@/components/ui/Button";
 import { useHospitals } from "@/hooks/useHospitals";
-import { downloadCsv, formatDisplayDate } from "@/lib/utils";
-import type { CreateHospitalInput, Hospital } from "@/types/hospital";
+import { downloadCsv, formatGridDate } from "@/lib/utils";
+import type {
+  CreateHospitalInput,
+  CreateHospitalResult,
+  Hospital,
+} from "@/types/hospital";
+
+interface SetupBannerState {
+  hospitalName: string;
+  adminEmail: string;
+}
 
 export function HospitalsView() {
   const {
@@ -26,6 +33,7 @@ export function HospitalsView() {
     search,
     sortBy,
     sortDirection,
+    hasUserSorted,
     dateFilter,
     viewMode,
     isLoading,
@@ -44,7 +52,6 @@ export function HospitalsView() {
     toggleSelectAllOnPage,
     addHospital,
     withdrawInvitation,
-    deleteHospital,
     editHospital,
   } = useHospitals();
 
@@ -54,37 +61,19 @@ export function HospitalsView() {
   );
   const [detailsHospital, setDetailsHospital] =
     React.useState<Hospital | null>(null);
-  const [withdrawTarget, setWithdrawTarget] =
-    React.useState<Hospital | null>(null);
-  const [deleteTarget, setDeleteTarget] = React.useState<Hospital | null>(null);
-  const [toast, setToast] = React.useState<{
-    message: string;
-    type: "success" | "error";
-  } | null>(null);
+  const [setupBanner, setSetupBanner] =
+    React.useState<SetupBannerState | null>(null);
+  const [toastMessage, setToastMessage] = React.useState<string | null>(null);
 
-  const showToast = React.useCallback(
-    (message: string, type: "success" | "error" = "success") => {
-      setToast({ message, type });
-    },
-    []
-  );
+  const showToast = React.useCallback((message: string) => {
+    setToastMessage(message);
+  }, []);
 
   React.useEffect(() => {
-    if (!toast) return;
-    const timer = setTimeout(() => setToast(null), 4000);
+    if (!toastMessage) return;
+    const timer = setTimeout(() => setToastMessage(null), 3500);
     return () => clearTimeout(timer);
-  }, [toast]);
-
-  const suggestedOrgId = React.useMemo(() => {
-    const source = allMatchingHospitals.length > 0 ? allMatchingHospitals : hospitals;
-    const maxNum = source.reduce((max, h) => {
-      const match = /^ORG-(\d+)$/i.exec(h.organisationId);
-      if (!match) return max;
-      const parsed = Number.parseInt(match[1], 10);
-      return Number.isNaN(parsed) ? max : Math.max(max, parsed);
-    }, 20);
-    return `ORG-${String(maxNum + 1).padStart(3, "0")}`;
-  }, [allMatchingHospitals, hospitals]);
+  }, [toastMessage]);
 
   const handleOpenCreate = () => {
     setEditingHospital(null);
@@ -98,8 +87,14 @@ export function HospitalsView() {
 
   const handleCreateHospital = async (values: CreateHospitalInput) => {
     const res = await addHospital(values);
-    showToast(res.message ?? `${values.name} created.`);
     return res.data;
+  };
+
+  const handleCompleteSetup = (result: CreateHospitalResult) => {
+    setSetupBanner({
+      hospitalName: result.hospital.name,
+      adminEmail: result.invitation.email,
+    });
   };
 
   const handleUpdateHospital = async (
@@ -118,46 +113,9 @@ export function HospitalsView() {
   };
 
   const handleWithdrawInvitation = async (hospital: Hospital) => {
-    try {
-      const res = await withdrawInvitation(hospital.id);
-      showToast(
-        res.message ?? `Setup withdrawn for ${hospital.name}.`,
-        "success"
-      );
-    } catch (err) {
-      const message =
-        err instanceof Error
-          ? err.message
-          : `Failed to withdraw setup for ${hospital.name}.`;
-      showToast(message, "error");
-      throw err;
-    }
-  };
-
-  const handleDeleteHospital = async (hospital: Hospital) => {
-    try {
-      const res = await deleteHospital(hospital.id);
-      showToast(
-        res.message ?? `${hospital.name} has been deleted.`,
-        "success"
-      );
-    } catch (err) {
-      const message =
-        err instanceof Error
-          ? err.message
-          : `Failed to delete ${hospital.name}.`;
-      showToast(message, "error");
-      throw err;
-    }
-  };
-
-  const handleCopyOrgId = async (orgId: string) => {
-    try {
-      await navigator.clipboard.writeText(orgId);
-      showToast(`Copied ${orgId} to clipboard.`);
-    } catch {
-      showToast(`Organisation ID: ${orgId}`);
-    }
+    const res = await withdrawInvitation(hospital.id);
+    setSetupBanner(null);
+    showToast(res.message ?? `Invitation withdrawn for ${hospital.name}.`);
   };
 
   const handleExportCsv = () => {
@@ -180,7 +138,7 @@ export function HospitalsView() {
       h.organisationId,
       h.administrator,
       h.adminEmail,
-      formatDisplayDate(h.createdAt),
+      formatGridDate(h.createdAt),
     ]);
 
     downloadCsv("probase-hospitals.csv", headers, rows);
@@ -191,61 +149,102 @@ export function HospitalsView() {
     );
   };
 
+  const breadcrumbLabel =
+    viewMode === "pending"
+      ? "Pending invitations"
+      : viewMode === "all"
+      ? "All hospitals"
+      : "Active hospitals";
+
   return (
-    <AppShell globalSearch={search} onGlobalSearchChange={setSearch}>
-      <div className="mx-auto w-full max-w-[1480px]">
-        <HospitalPageHeader />
-
-        <HospitalToolbar
-          search={search}
-          onSearchChange={setSearch}
-          sortBy={sortBy}
-          sortDirection={sortDirection}
-          onSortChange={handleSort}
-          dateFilter={dateFilter}
-          onDateFilterChange={setDateFilter}
-          viewMode={viewMode}
-          onViewModeChange={setViewMode}
-          onClearFilters={clearFilters}
-          onRefresh={() => refresh(false)}
-          onSimulateError={() => refresh(true)}
-          onExportCsv={handleExportCsv}
-          onOpenSetupDialog={handleOpenCreate}
-          isRefreshing={isRefreshing}
-        />
-
-        <HospitalTable
-          hospitals={hospitals}
-          isLoading={isLoading}
-          error={error}
-          selectedIds={selectedIds}
-          sortBy={sortBy}
-          sortDirection={sortDirection}
-          pageSize={pageSize}
-          onSort={(field) => handleSort(field)}
-          onToggleSelect={toggleSelectRow}
-          onToggleSelectAll={toggleSelectAllOnPage}
-          onViewDetails={setDetailsHospital}
-          onEdit={handleOpenEdit}
-          onCopyOrgId={handleCopyOrgId}
-          onWithdrawSetup={setWithdrawTarget}
-          onDelete={setDeleteTarget}
-          onRetry={() => refresh(false)}
-          onClearFilters={clearFilters}
-        />
-
-        {!error && (
-          <HospitalPagination
-            page={page}
-            totalPages={totalPages}
-            pageSize={pageSize}
-            total={total}
-            selectedCount={selectedIds.length}
-            onPageChange={setPage}
-            onPageSizeChange={setPageSize}
-            onExportCsv={handleExportCsv}
-          />
+    <AppShell
+      globalSearch={search}
+      onGlobalSearchChange={setSearch}
+      currentBreadcrumbLabel={breadcrumbLabel}
+    >
+      <div className="flex min-h-[calc(100vh-64px)] flex-1 flex-col gap-[16px] bg-[var(--color-bg)]">
+        {/* PA 13 · Set Up Banner */}
+        {setupBanner && (
+          <div className="px-[16px] pt-[16px]">
+            <div
+              role="status"
+              className="flex flex-wrap items-center gap-[12px] rounded-[6px] border border-white/12 bg-[var(--color-surface-overlay)] px-[16px] py-[12px]"
+            >
+              <CheckCircle2
+                strokeWidth={1.6}
+                className="h-[18px] w-[18px] shrink-0 text-white"
+                aria-hidden="true"
+              />
+              <p className="min-w-0 flex-1 text-[14px] font-normal leading-[20px] text-white">
+                {setupBanner.hospitalName} is set up. It joins this list once{" "}
+                {setupBanner.adminEmail} accepts the invitation — until then it
+                lives under Invitations.
+              </p>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setViewMode("pending")}
+              >
+                View in Invitations
+              </Button>
+            </div>
+          </div>
         )}
+
+        {/* PA 09 / PA 13 · Table — Data Grid / Hospitals */}
+        <div
+          className={`flex flex-1 flex-col border-b border-white/12 bg-[var(--color-bg)] ${
+            setupBanner ? "border-t" : ""
+          }`}
+        >
+          <HospitalToolbar
+            search={search}
+            onSearchChange={setSearch}
+            sortBy={sortBy}
+            sortDirection={sortDirection}
+            onSortChange={handleSort}
+            dateFilter={dateFilter}
+            onDateFilterChange={setDateFilter}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            onClearFilters={clearFilters}
+            onRefresh={() => refresh(false)}
+            onSimulateError={() => refresh(true)}
+            onExportCsv={handleExportCsv}
+            onOpenSetupDialog={handleOpenCreate}
+            isRefreshing={isRefreshing}
+          />
+
+          <HospitalTable
+            hospitals={hospitals}
+            isLoading={isLoading}
+            error={error}
+            selectedIds={selectedIds}
+            sortBy={sortBy}
+            sortDirection={sortDirection}
+            hasUserSorted={hasUserSorted}
+            pageSize={pageSize}
+            onSort={(field) => handleSort(field)}
+            onToggleSelect={toggleSelectRow}
+            onToggleSelectAll={toggleSelectAllOnPage}
+            onViewDetails={setDetailsHospital}
+            onRetry={() => refresh(false)}
+            onClearFilters={clearFilters}
+          />
+
+          {!error && (
+            <HospitalPagination
+              page={page}
+              totalPages={totalPages}
+              pageSize={pageSize}
+              total={total}
+              selectedCount={selectedIds.length}
+              onPageChange={setPage}
+              onPageSizeChange={setPageSize}
+              onExportCsv={handleExportCsv}
+            />
+          )}
+        </div>
       </div>
 
       <SetupHospitalDialog
@@ -255,10 +254,10 @@ export function HospitalsView() {
           setEditingHospital(null);
         }}
         editingHospital={editingHospital}
-        suggestedOrgId={suggestedOrgId}
         onCreateHospital={handleCreateHospital}
         onUpdateHospital={handleUpdateHospital}
         onWithdrawInvitation={handleWithdrawInvitation}
+        onCompleteSetup={handleCompleteSetup}
       />
 
       <HospitalDetailsDialog
@@ -267,37 +266,19 @@ export function HospitalsView() {
         onEdit={handleOpenEdit}
       />
 
-      <WithdrawHospitalDialog
-        key={`withdraw-${withdrawTarget?.id ?? "none"}`}
-        hospital={withdrawTarget}
-        onClose={() => setWithdrawTarget(null)}
-        onConfirmWithdraw={handleWithdrawInvitation}
-      />
-
-      <DeleteHospitalDialog
-        key={`delete-${deleteTarget?.id ?? "none"}`}
-        hospital={deleteTarget}
-        onClose={() => setDeleteTarget(null)}
-        onConfirmDelete={handleDeleteHospital}
-      />
-
-      {toast && (
+      {toastMessage && (
         <div
-          role={toast.type === "error" ? "alert" : "status"}
-          aria-live={toast.type === "error" ? "assertive" : "polite"}
-          className="fixed bottom-5 right-5 z-50 flex items-center gap-2.5 rounded-lg border border-[var(--border-default)] bg-[var(--bg-dropdown)] px-3.5 py-2.5 text-[13px] text-[var(--text-primary)] shadow-xl shadow-black/15 dark:shadow-black/60"
+          role="status"
+          aria-live="polite"
+          className="fixed bottom-5 right-5 z-50 flex items-center gap-2.5 rounded-[8px] border border-white/12 bg-[#1f1f1f] px-3.5 py-2.5 text-[13px] text-white shadow-[0px_8px_24px_0px_rgba(0,0,0,0.45)]"
         >
-          {toast.type === "error" ? (
-            <AlertCircle className="h-4 w-4 shrink-0 text-[#DC2626] dark:text-[#F87171]" />
-          ) : (
-            <CheckCircle2 className="h-4 w-4 shrink-0 text-[#1686D9]" />
-          )}
-          <span>{toast.message}</span>
+          <CheckCircle2 className="h-4 w-4 shrink-0 text-[#1c75b3]" />
+          <span>{toastMessage}</span>
           <button
             type="button"
-            onClick={() => setToast(null)}
+            onClick={() => setToastMessage(null)}
             aria-label="Dismiss notification"
-            className="ml-1 rounded p-0.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer"
+            className="ml-1 rounded p-0.5 text-[#a0a0a0] hover:text-white cursor-pointer"
           >
             <X className="h-3.5 w-3.5" />
           </button>

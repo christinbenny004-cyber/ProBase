@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface DialogProps {
@@ -9,6 +8,7 @@ interface DialogProps {
   onClose: () => void;
   title: string;
   description?: string;
+  icon?: React.ReactNode;
   children: React.ReactNode;
   maxWidthClassName?: string;
 }
@@ -18,8 +18,9 @@ export function Dialog({
   onClose,
   title,
   description,
+  icon,
   children,
-  maxWidthClassName = "max-w-[480px]",
+  maxWidthClassName = "max-w-[560px]",
 }: DialogProps) {
   React.useEffect(() => {
     if (!open) return;
@@ -44,46 +45,44 @@ export function Dialog({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto"
       role="dialog"
       aria-modal="true"
       aria-labelledby="dialog-title"
     >
       <div
-        className="fixed inset-0 bg-black/40 dark:bg-black/65 backdrop-blur-[2px]"
+        className="fixed inset-0 bg-black/65"
         onClick={onClose}
         aria-hidden="true"
       />
       <div
         className={cn(
-          "relative z-10 w-full rounded-lg border border-[var(--border-default)] bg-[var(--bg-surface)] shadow-2xl shadow-black/15 dark:shadow-black/70",
+          "relative z-10 flex w-full flex-col gap-[18px] rounded-[12px] border border-white/12 bg-[#1a1a1a] p-[24px] shadow-[0px_8px_24px_0px_rgba(0,0,0,0.45)]",
           maxWidthClassName
         )}
       >
-        <div className="flex items-start justify-between border-b border-[var(--border-subtle)] px-5 py-4">
-          <div>
+        <div className="flex items-start gap-[18px]">
+          {icon && (
+            <div className="flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-full border border-white/12 bg-[#1f1f1f] text-white">
+              {icon}
+            </div>
+          )}
+          <div className="flex min-w-0 flex-1 flex-col gap-[8px]">
             <h2
               id="dialog-title"
-              className="text-[16px] font-semibold text-[var(--text-primary)]"
+              className="font-display text-[16px] font-semibold leading-[24px] text-white"
             >
               {title}
             </h2>
             {description && (
-              <p className="mt-1 text-[13px] text-[var(--text-secondary)]">
+              <p className="text-[14px] font-normal leading-[20px] text-[#a0a0a0]">
                 {description}
               </p>
             )}
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close dialog"
-            className="rounded-md p-1 text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1686D9]"
-          >
-            <X className="h-4 w-4" />
-          </button>
         </div>
-        <div className="px-5 py-4">{children}</div>
+
+        {children}
       </div>
     </div>
   );

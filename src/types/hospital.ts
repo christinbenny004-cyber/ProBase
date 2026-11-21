@@ -1,6 +1,4 @@
-export type HospitalStatus = "active" | "pending" | "setup_withdrawn";
-
-export type InvitationStatus = "pending" | "accepted" | "withdrawn";
+export type HospitalStatus = "active" | "pending";
 
 export type HospitalSortField =
   | "name"
@@ -11,7 +9,11 @@ export type HospitalSortField =
 
 export type SortDirection = "asc" | "desc";
 
-export type DateRangeFilter = "all" | "last_7_days" | "last_30_days" | "nov_2026" | "oct_2026";
+export type DateRangeFilter =
+  | "all"
+  | "may_jun_2026"
+  | "jul_aug_2026"
+  | "sep_2026";
 
 export type HospitalViewMode = "active" | "all" | "pending";
 
@@ -23,10 +25,6 @@ export interface Hospital {
   adminEmail: string;
   createdAt: string; // ISO date string YYYY-MM-DD
   status: HospitalStatus;
-  region?: string;
-  invitationStatus?: InvitationStatus;
-  withdrawnAt?: string;
-  deletedAt?: string;
 }
 
 export interface HospitalQueryParams {
@@ -54,18 +52,24 @@ export interface UpdateHospitalInput extends CreateHospitalInput {
 
 export interface HospitalInvitation {
   id: string;
-  hospitalId: string;
   url: string;
   email: string;
-  role: "Administrator";
-  status: InvitationStatus;
+  role: string;
   expiresAt: string; // ISO date string YYYY-MM-DD
-  withdrawnAt?: string;
 }
 
 export interface CreateHospitalResult {
   hospital: Hospital;
   invitation: HospitalInvitation;
+}
+
+export interface OrgIdCheckResult {
+  available: boolean;
+  organisationId: string;
+  conflict?: {
+    name: string;
+    createdAt: string;
+  };
 }
 
 export interface PaginatedResponse<T> {

@@ -57,7 +57,7 @@ export function Dropdown({
         <div
           role="menu"
           className={cn(
-            "absolute z-50 mt-1.5 min-w-[190px] rounded-lg border border-[var(--border-default)] bg-[var(--bg-dropdown)] py-1 shadow-xl shadow-black/10 dark:shadow-black/50",
+            "absolute z-50 mt-1.5 min-w-[190px] rounded-[8px] border border-white/12 bg-[#1a1a1a] py-1 shadow-[0px_8px_24px_0px_rgba(0,0,0,0.45)]",
             align === "right" ? "right-0" : "left-0",
             menuClassName
           )}
@@ -89,13 +89,13 @@ export function DropdownItem({
       className={cn(
         "flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-[13px] transition-colors cursor-pointer",
         active
-          ? "bg-[var(--bg-dropdown-active)] text-[var(--text-primary)] font-medium"
-          : "text-[var(--text-body)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]",
+          ? "bg-[#1f1f1f] text-white font-medium"
+          : "text-[#a0a0a0] hover:bg-[#1f1f1f] hover:text-white",
         className
       )}
       {...props}
     >
-      {icon && <span className="text-[var(--text-subtle)] shrink-0">{icon}</span>}
+      {icon && <span className="shrink-0 text-[#707070]">{icon}</span>}
       <span className="flex-1 truncate">{children}</span>
     </button>
   );

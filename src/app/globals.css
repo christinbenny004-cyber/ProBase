@@ -1,112 +1,76 @@
 @import "tailwindcss";
 
-@custom-variant dark (&:where(.dark, .dark *));
-
 :root {
-  --bg-app: #f6f7f9;
-  --bg-sidebar: #ffffff;
-  --bg-header: #ffffff;
-  --bg-surface: #ffffff;
-  --bg-table: #ffffff;
-  --bg-table-header: #f3f4f6;
-  --bg-input: #ffffff;
-  --bg-input-dialog: #f9fafb;
-  --bg-hover: #f1f3f5;
-  --bg-hover-subtle: #f3f4f6;
-  --bg-row-hover: #f8fafc;
-  --bg-active-nav: #eff1f5;
-  --bg-dropdown: #ffffff;
-  --bg-dropdown-active: #f1f5f9;
-  --bg-pill: #f1f3f5;
-  --bg-skeleton: #e5e7eb;
-  --border-default: #d1d5db;
-  --border-subtle: #e5e7eb;
-  --border-table: #e5e7eb;
-  --border-row: #f1f3f5;
-  --border-input: #d1d5db;
-  --border-input-hover: #9ca3af;
-  --text-primary: #111827;
-  --text-body: #374151;
-  --text-secondary: #4b5563;
-  --text-muted: #6b7280;
-  --text-subtle: #6b7280;
-  --accent-primary: #1686d9;
-  --accent-hover: #0875c5;
-  --scrollbar-track: #f1f3f5;
-  --scrollbar-thumb: #cbd5e1;
-  --scrollbar-thumb-hover: #94a3b8;
-  color-scheme: light;
-}
-
-.dark {
-  --bg-app: #111214;
-  --bg-sidebar: #171819;
-  --bg-header: #111214;
-  --bg-surface: #191b1e;
-  --bg-table: #16181b;
-  --bg-table-header: #202226;
-  --bg-input: #1b1d20;
-  --bg-input-dialog: #141619;
-  --bg-hover: #23262b;
-  --bg-hover-subtle: #1e2024;
-  --bg-row-hover: #1d2025;
-  --bg-active-nav: #25272c;
-  --bg-dropdown: #1d1f23;
-  --bg-dropdown-active: #262930;
-  --bg-pill: #25282e;
-  --bg-skeleton: #25282e;
-  --border-default: #303338;
-  --border-subtle: #26282d;
-  --border-table: #2a2d32;
-  --border-row: #23262b;
-  --border-input: #2c2f35;
-  --border-input-hover: #3b3f47;
-  --text-primary: #f1f2f4;
-  --text-body: #e2e4e9;
-  --text-secondary: #a1a5ac;
-  --text-muted: #737982;
-  --text-subtle: #8b9098;
-  --accent-primary: #1686d9;
-  --accent-hover: #0875c5;
-  --scrollbar-track: #141518;
-  --scrollbar-thumb: #2e3137;
-  --scrollbar-thumb-hover: #3d4149;
-  color-scheme: dark;
+  --color-bg: #121212;
+  --color-surface: #1a1a1a;
+  --color-surface-overlay: #1f1f1f;
+  --color-border: rgba(255, 255, 255, 0.12);
+  --color-border-strong: rgba(255, 255, 255, 0.2);
+  --color-text: #ffffff;
+  --color-text-muted: #a0a0a0;
+  --color-text-subtle: #707070;
+  --color-accent: #1c75b3;
+  --color-accent-hover: #17649a;
+  --color-on-accent: #ffffff;
+  --color-danger-border: #c93a2e;
+  --color-danger-text: #f0705f;
 }
 
 @theme inline {
-  --color-background: var(--bg-app);
-  --color-foreground: var(--text-primary);
-  --font-sans: var(--font-ibm-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  --color-background: var(--color-bg);
+  --color-foreground: var(--color-text);
+  --color-surface: var(--color-surface);
+  --color-surface-overlay: var(--color-surface-overlay);
+  --color-border-default: var(--color-border);
+  --color-border-strong: var(--color-border-strong);
+  --color-text-muted: var(--color-text-muted);
+  --color-text-subtle: var(--color-text-subtle);
+  --color-accent: var(--color-accent);
+  --color-danger-border: var(--color-danger-border);
+  --color-danger-text: var(--color-danger-text);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-manrope), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-source-code-pro), ui-monospace, SFMono-Regular, monospace;
 }
 
 * {
-  border-color: var(--border-subtle);
+  border-color: var(--color-border);
 }
 
 html,
 body {
-  background-color: var(--bg-app);
-  color: var(--text-primary);
-  font-family: var(--font-ibm-plex-sans), ui-sans-serif, system-ui,
-    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-inter), ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color-scheme: dark;
 }
 
-/* Subtle theme-aware scrollbar */
+.font-display {
+  font-family: var(--font-manrope), var(--font-inter), ui-sans-serif, system-ui,
+    sans-serif;
+}
+
+.font-mono-code {
+  font-family: var(--font-source-code-pro), ui-monospace, SFMono-Regular, Menlo,
+    monospace;
+}
+
+/* Subtle dark scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--scrollbar-track);
+  background: #121212;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb);
+  background: rgba(255, 255, 255, 0.16);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--scrollbar-thumb-hover);
+  background: rgba(255, 255, 255, 0.26);
 }

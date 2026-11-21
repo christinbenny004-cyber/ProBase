@@ -5,29 +5,36 @@ import { cn } from "@/lib/utils";
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "ghost" | "danger";
+  variant?: "primary" | "outline" | "secondary" | "ghost" | "danger";
   size?: "sm" | "md" | "icon";
 }
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = "secondary", size = "md", type = "button", ...props }, ref) => {
+  (
+    { className, variant = "secondary", size = "md", type = "button", ...props },
+    ref
+  ) => {
     return (
       <button
         ref={ref}
         type={type}
         className={cn(
-          "inline-flex items-center justify-center gap-2 rounded-md text-[13px] font-medium transition-colors cursor-pointer disabled:pointer-events-none disabled:opacity-45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1686D9] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--bg-app)]",
+          "inline-flex items-center justify-center gap-[6px] transition-colors cursor-pointer disabled:pointer-events-none disabled:opacity-45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1c75b3] focus-visible:ring-offset-1 focus-visible:ring-offset-[#121212]",
           variant === "primary" &&
-            "bg-[#1686D9] text-white hover:bg-[#0875C5] border border-[#1686D9] hover:border-[#0875C5]",
+            "bg-[#1c75b3] text-white font-semibold hover:bg-[#17649a]",
+          variant === "outline" &&
+            "bg-transparent border border-white/20 text-white font-medium hover:bg-white/[0.06]",
           variant === "secondary" &&
-            "bg-[var(--bg-input)] text-[var(--text-body)] border border-[var(--border-default)] hover:bg-[var(--bg-hover)] hover:border-[var(--border-input-hover)]",
+            "bg-[#1a1a1a] border border-white/20 text-white font-medium hover:bg-[#242424]",
           variant === "ghost" &&
-            "bg-transparent text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]",
+            "bg-transparent text-[#a0a0a0] font-medium hover:text-white hover:bg-white/[0.06]",
           variant === "danger" &&
-            "bg-[#FEF2F2] text-[#DC2626] border border-[#FECACA] hover:bg-[#FEE2E2] dark:bg-[#2A1719] dark:text-[#F87171] dark:border-[#5C262B] dark:hover:bg-[#3A1E21]",
-          size === "sm" && "h-8 px-2.5 text-[12px]",
-          size === "md" && "h-[34px] px-3",
-          size === "icon" && "h-[34px] w-[34px] p-0",
+            "bg-transparent border border-[#c93a2e] text-[#f0705f] font-medium hover:bg-[#c93a2e]/15",
+          size === "sm" &&
+            "h-[30px] px-[12px] rounded-[6px] text-[13px] leading-[17px]",
+          size === "md" &&
+            "h-[38px] px-[16px] rounded-[8px] text-[14px] leading-[18px]",
+          size === "icon" && "h-[30px] w-[36px] rounded-[6px] px-[10px]",
           className
         )}
         {...props}

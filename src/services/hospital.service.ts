@@ -4,6 +4,7 @@ import type {
   CreateHospitalResult,
   Hospital,
   HospitalQueryParams,
+  OrgIdCheckResult,
   PaginatedResponse,
   UpdateHospitalInput,
 } from "@/types/hospital";
@@ -49,7 +50,7 @@ export async function fetchHospitals(
 export async function checkOrganisationId(
   organisationId: string,
   signal?: AbortSignal
-): Promise<{ available: boolean; organisationId: string }> {
+): Promise<OrgIdCheckResult> {
   const query = new URLSearchParams({ checkOrgId: organisationId });
   const response = await fetch(`${BASE_URL}?${query.toString()}`, {
     method: "GET",
@@ -58,10 +59,7 @@ export async function checkOrganisationId(
     signal,
   });
 
-  const result = await parseJsonResponse<{
-    available: boolean;
-    organisationId: string;
-  }>(response);
+  const result = await parseJsonResponse<OrgIdCheckResult>(response);
   return result.data;
 }
 

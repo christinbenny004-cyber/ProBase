@@ -7,7 +7,6 @@ import {
   Download,
   LayoutGrid,
   MoreVertical,
-  Plus,
   RefreshCw,
   Search,
   X,
@@ -27,7 +26,7 @@ import type {
 const VIEW_MODES: Array<{ value: HospitalViewMode; label: string }> = [
   { value: "active", label: "Active hospitals" },
   { value: "all", label: "All hospitals" },
-  { value: "pending", label: "Pending setup" },
+  { value: "pending", label: "Pending invitations" },
 ];
 
 interface HospitalToolbarProps {
@@ -69,35 +68,36 @@ export function HospitalToolbar({
     VIEW_MODES.find((v) => v.value === viewMode)?.label ?? "Active hospitals";
 
   return (
-    <div className="mb-4 flex flex-col gap-2.5 xl:flex-row xl:items-center xl:justify-between">
-      {/* Left: Search input */}
-      <div className="relative w-full xl:max-w-[440px]">
+    <div className="flex min-h-[52px] w-full flex-wrap items-center gap-[8px] border-b border-white/12 bg-[#1a1a1a] px-[12px] py-2">
+      {/* Left: Borderless inline search */}
+      <div className="flex min-w-[220px] flex-1 items-center gap-[8px]">
         <Search
-          className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--text-muted)]"
+          strokeWidth={1.6}
+          className="h-[16px] w-[16px] shrink-0 text-[#707070]"
           aria-hidden="true"
         />
         <input
           type="text"
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="Filter by hospital, Organisation ID or administrator..."
+          placeholder="Filter by hospital, Organisation ID or administrator…"
           aria-label="Filter hospitals"
-          className="h-[34px] w-full rounded-md border border-[var(--border-input)] bg-[var(--bg-surface)] pl-8.5 pr-8 text-[13px] text-[var(--text-primary)] placeholder-[var(--text-muted)] transition-colors focus:border-[#1686D9] focus:outline-none"
+          className="w-full min-w-0 bg-transparent text-[14px] font-normal leading-[20px] text-white placeholder-[#707070] focus:outline-none"
         />
         {search && (
           <button
             type="button"
             onClick={() => onSearchChange("")}
             aria-label="Clear search"
-            className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded p-0.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer"
+            className="rounded p-0.5 text-[#707070] hover:text-white cursor-pointer"
           >
-            <X className="h-3.5 w-3.5" />
+            <X className="h-[14px] w-[14px]" />
           </button>
         )}
       </div>
 
-      {/* Right: Action controls */}
-      <div className="flex flex-wrap items-center gap-2">
+      {/* Right: Controls */}
+      <div className="flex flex-wrap items-center gap-[8px]">
         <HospitalSort
           sortBy={sortBy}
           sortDirection={sortDirection}
@@ -112,16 +112,16 @@ export function HospitalToolbar({
 
         <Dropdown
           align="right"
-          menuClassName="min-w-[180px]"
+          menuClassName="min-w-[190px]"
           trigger={({ toggle }) => (
             <button
               type="button"
               onClick={toggle}
-              className="inline-flex h-[34px] items-center gap-2 rounded-md border border-[var(--border-default)] bg-[var(--bg-input)] px-3 text-[13px] font-medium text-[var(--text-body)] transition-colors hover:border-[var(--border-input-hover)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1686D9]"
+              className="inline-flex h-[30px] items-center gap-[6px] rounded-[6px] border border-white/20 bg-[#1a1a1a] px-[10px] font-display text-[14px] font-medium leading-[20px] text-white transition-colors hover:bg-[#242424] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1c75b3]"
             >
-              <LayoutGrid className="h-3.5 w-3.5 text-[var(--text-subtle)]" />
-              <span>{activeViewLabel}</span>
-              <ChevronDown className="h-3.5 w-3.5 text-[var(--text-muted)]" />
+              <LayoutGrid strokeWidth={1.6} className="h-[14px] w-[14px] text-[#a0a0a0]" />
+              <span className="whitespace-nowrap">{activeViewLabel}</span>
+              <ChevronDown strokeWidth={1.6} className="h-[13px] w-[13px] text-[#a0a0a0]" />
             </button>
           )}
         >
@@ -138,7 +138,7 @@ export function HospitalToolbar({
                 <span className="flex items-center justify-between gap-2">
                   <span>{mode.label}</span>
                   {viewMode === mode.value && (
-                    <Check className="h-3.5 w-3.5 text-[#1686D9]" />
+                    <Check className="h-3.5 w-3.5 text-[#1c75b3]" />
                   )}
                 </span>
               </DropdownItem>
@@ -157,7 +157,7 @@ export function HospitalToolbar({
               aria-label="More actions"
               title="More actions"
             >
-              <MoreVertical className="h-4 w-4 text-[var(--text-secondary)]" />
+              <MoreVertical strokeWidth={1.6} className="h-[14px] w-[14px] text-[#a0a0a0]" />
             </Button>
           )}
         >
@@ -181,9 +181,9 @@ export function HospitalToolbar({
               >
                 Reload directory
               </DropdownItem>
-              <div className="my-1 border-t border-[var(--border-subtle)]" />
+              <div className="my-1 border-t border-white/12" />
               <DropdownItem
-                icon={<AlertTriangle className="h-3.5 w-3.5 text-amber-500 dark:text-amber-400" />}
+                icon={<AlertTriangle className="h-3.5 w-3.5 text-[#f0705f]" />}
                 onClick={() => {
                   onSimulateError();
                   close();
@@ -204,21 +204,16 @@ export function HospitalToolbar({
           title="Refresh hospitals"
         >
           <RefreshCw
+            strokeWidth={1.6}
             className={cn(
-              "h-3.5 w-3.5 text-[var(--text-secondary)]",
-              isRefreshing && "animate-spin text-[var(--text-primary)]"
+              "h-[14px] w-[14px] text-[#a0a0a0]",
+              isRefreshing && "animate-spin text-white"
             )}
           />
         </Button>
 
-        <Button
-          variant="primary"
-          size="md"
-          onClick={onOpenSetupDialog}
-          className="px-3.5 font-medium"
-        >
-          <Plus className="h-4 w-4" />
-          <span>Set up a hospital</span>
+        <Button variant="primary" size="sm" onClick={onOpenSetupDialog}>
+          Set up a hospital
         </Button>
       </div>
     </div>

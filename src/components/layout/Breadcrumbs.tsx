@@ -11,12 +11,15 @@ interface BreadcrumbsProps {
 
 export function Breadcrumbs({ items }: BreadcrumbsProps) {
   return (
-    <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-[13px]">
+    <nav
+      aria-label="Breadcrumb"
+      className="flex items-center gap-[6px] text-[14px] font-normal leading-[20px]"
+    >
       {items.map((item, index) => (
-        <div key={item.label} className="flex items-center gap-1.5">
+        <div key={item.label} className="flex items-center gap-[6px]">
           {index > 0 && (
             <ChevronRight
-              className="h-3.5 w-3.5 text-[var(--text-muted)]"
+              className="h-[14px] w-[14px] text-[#707070]"
               aria-hidden="true"
             />
           )}
@@ -24,8 +27,8 @@ export function Breadcrumbs({ items }: BreadcrumbsProps) {
             aria-current={item.current ? "page" : undefined}
             className={
               item.current
-                ? "font-medium text-[var(--text-primary)]"
-                : "text-[var(--text-subtle)] transition-colors hover:text-[var(--text-body)]"
+                ? "text-white whitespace-nowrap"
+                : "text-[#707070] whitespace-nowrap"
             }
           >
             {item.label}

@@ -1,25 +1,23 @@
-import { INITIAL_HOSPITALS, INITIAL_INVITATIONS } from "@/mocks/hospital.data";
+import { INITIAL_HOSPITALS } from "@/mocks/hospital.data";
+import { formatGridDate } from "@/lib/utils";
 import type {
   ApiResponse,
   CreateHospitalInput,
   CreateHospitalResult,
   DateRangeFilter,
   Hospital,
-  HospitalInvitation,
   HospitalQueryParams,
   HospitalSortField,
+  OrgIdCheckResult,
   PaginatedResponse,
   SortDirection,
   UpdateHospitalInput,
 } from "@/types/hospital";
 
-// In-memory mock stores for the session
+// In-memory mock store for the session
 let hospitalStore: Hospital[] = [...INITIAL_HOSPITALS];
-let invitationStore: HospitalInvitation[] = [...INITIAL_INVITATIONS];
 
-const REFERENCE_DATE = new Date("2026-11-16T00:00:00Z");
-
-export function simulateLatency(ms = 280): Promise<void> {
+export function simulateLatency(ms = 220): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
@@ -29,23 +27,15 @@ function matchesDateFilter(createdAt: string, filter: DateRangeFilter): boolean 
   const date = new Date(`${createdAt}T00:00:00Z`);
   if (Number.isNaN(date.getTime())) return true;
 
-  if (filter === "nov_2026") {
-    return date.getUTCFullYear() === 2026 && date.getUTCMonth() === 10;
+  const month = date.getUTCMonth(); // 0-indexed: 4=May, 5=Jun, 6=Jul, 7=Aug, 8=Sep
+  if (filter === "may_jun_2026") {
+    return month === 4 || month === 5;
   }
-
-  if (filter === "oct_2026") {
-    return date.getUTCFullYear() === 2026 && date.getUTCMonth() === 9;
+  if (filter === "jul_aug_2026") {
+    return month === 6 || month === 7;
   }
-
-  const diffDays =
-    (REFERENCE_DATE.getTime() - date.getTime()) / (1000 * 60 * 60 * 24);
-
-  if (filter === "last_7_days") {
-    return diffDays >= 0 && diffDays <= 7;
-  }
-
-  if (filter === "last_30_days") {
-    return diffDays >= 0 && diffDays <= 30;
+  if (filter === "sep_2026") {
+    return month === 8;
   }
 
   return true;
@@ -65,7 +55,7 @@ function compareHospitals(
     if (timeA !== timeB) {
       return (timeA - timeB) * multiplier;
     }
-    return a.organisationId.localeCompare(b.organisationId) * multiplier;
+    return a.id.localeCompare(b.id) * multiplier;
   }
 
   const valA = a[sortBy].toLowerCase();
@@ -76,7 +66,7 @@ function compareHospitals(
 export async function handleGetHospitals(
   params: HospitalQueryParams = {}
 ): Promise<ApiResponse<PaginatedResponse<Hospital>>> {
-  await simulateLatency(260);
+  await simulateLatency(220);
 
   if (params.simulateError) {
     throw new Error(
@@ -87,20 +77,16 @@ export async function handleGetHospitals(
   const {
     search = "",
     sortBy = "createdAt",
-    sortDirection = "desc",
+    sortDirection = "asc",
     dateFilter = "all",
     viewMode = "active",
     page = 1,
-    pageSize = 10,
+    pageSize = 50,
   } = params;
 
   const normalizedQuery = search.trim().toLowerCase();
 
   const filtered = hospitalStore.filter((hospital) => {
-    if (hospital.deletedAt) {
-      return false;
-    }
-
     if (viewMode === "active" && hospital.status !== "active") {
       return false;
     }
@@ -160,18 +146,24 @@ function deriveAdministratorName(email: string): string {
 
 export async function handleCheckOrganisationId(
   orgId: string
-): Promise<ApiResponse<{ available: boolean; organisationId: string }>> {
+): Promise<ApiResponse<OrgIdCheckResult>> {
   await simulateLatency(120);
-  const normalizedOrgId = orgId.trim().toUpperCase();
-  const exists = hospitalStore.some(
-    (h) => h.organisationId.toUpperCase() === normalizedOrgId
+  const normalizedOrgId = orgId.trim().toLowerCase();
+  const existing = hospitalStore.find(
+    (h) => h.organisationId.toLowerCase() === normalizedOrgId
   );
 
   return {
     success: true,
     data: {
-      available: !exists,
+      available: !existing,
       organisationId: normalizedOrgId,
+      conflict: existing
+        ? {
+            name: existing.name,
+            createdAt: existing.createdAt,
+          }
+        : undefined,
     },
   };
 }
@@ -179,16 +171,16 @@ export async function handleCheckOrganisationId(
 export async function handleCreateHospital(
   input: CreateHospitalInput
 ): Promise<ApiResponse<CreateHospitalResult>> {
-  await simulateLatency(350);
+  await simulateLatency(320);
 
-  const normalizedOrgId = input.organisationId.trim().toUpperCase();
-  const duplicate = hospitalStore.some(
-    (h) => h.organisationId.toUpperCase() === normalizedOrgId
+  const normalizedOrgId = input.organisationId.trim().toLowerCase();
+  const duplicate = hospitalStore.find(
+    (h) => h.organisationId.toLowerCase() === normalizedOrgId
   );
 
   if (duplicate) {
     throw new Error(
-      `Organisation ID "${normalizedOrgId}" is already in use.`
+      `Taken by ${duplicate.name}, set up ${formatGridDate(duplicate.createdAt)}. Try ${normalizedOrgId}-nhs or ${normalizedOrgId}-ft.`
     );
   }
 
@@ -210,24 +202,19 @@ export async function handleCreateHospital(
     administrator: resolvedAdmin,
     adminEmail: normalizedEmail,
     createdAt: today,
-    status: "active",
-    invitationStatus: "pending",
+    status: "pending",
   };
 
   hospitalStore = [newHospital, ...hospitalStore];
 
-  const token = Math.random().toString(36).slice(2, 10);
-  const invitation: HospitalInvitation = {
+  const token = Math.random().toString(16).slice(2, 16).padEnd(14, "a");
+  const invitation = {
     id: `inv-${Date.now()}`,
-    hospitalId,
-    url: `https://app.probase.health/invite/${normalizedOrgId.toLowerCase()}-${token}`,
+    url: `probase.uk/i/${normalizedOrgId}/${token}`,
     email: normalizedEmail,
-    role: "Administrator",
-    status: "pending",
+    role: "Administrator — fixed for a first administrator",
     expiresAt: expiryDate,
   };
-
-  invitationStore = [invitation, ...invitationStore];
 
   return {
     success: true,
@@ -235,111 +222,66 @@ export async function handleCreateHospital(
       hospital: newHospital,
       invitation,
     },
-    message: `Tenant "${newHospital.name}" created and invitation sent to ${newHospital.adminEmail}.`,
+    message: `${newHospital.name} is set up.`,
   };
 }
 
 export async function handleWithdrawInvitation(
   hospitalId: string
-): Promise<ApiResponse<{ withdrawnId: string; hospital: Hospital }>> {
-  await simulateLatency(280);
+): Promise<ApiResponse<{ withdrawnId: string }>> {
+  await simulateLatency(260);
 
-  const hospital = hospitalStore.find(
-    (h) => h.id === hospitalId && !h.deletedAt
-  );
-  if (!hospital) {
+  const exists = hospitalStore.some((h) => h.id === hospitalId);
+  if (!exists) {
     throw new Error("Invitation or hospital record could not be found.");
   }
 
-  if (hospital.invitationStatus !== "pending") {
-    throw new Error(
-      "Setup can only be withdrawn while the initial administrator invitation is pending."
-    );
-  }
-
-  const today = new Date().toISOString().slice(0, 10);
-  const updatedHospital: Hospital = {
-    ...hospital,
-    status: "setup_withdrawn",
-    invitationStatus: "withdrawn",
-    withdrawnAt: today,
-  };
-
-  hospitalStore = hospitalStore.map((h) =>
-    h.id === hospitalId ? updatedHospital : h
-  );
-
-  invitationStore = invitationStore.map((inv) =>
-    inv.hospitalId === hospitalId && inv.status === "pending"
-      ? { ...inv, status: "withdrawn", withdrawnAt: today }
-      : inv
-  );
+  hospitalStore = hospitalStore.filter((h) => h.id !== hospitalId);
 
   return {
     success: true,
-    data: { withdrawnId: hospitalId, hospital: updatedHospital },
-    message: `Setup withdrawn for ${hospital.name}. Pending invitation has been revoked.`,
+    data: { withdrawnId: hospitalId },
+    message: "Administrator invitation withdrawn.",
   };
 }
 
 export async function handleDeleteHospital(
   hospitalId: string
 ): Promise<ApiResponse<{ deletedId: string }>> {
-  await simulateLatency(300);
+  await simulateLatency(260);
 
-  const hospital = hospitalStore.find(
-    (h) => h.id === hospitalId && !h.deletedAt
-  );
-  if (!hospital) {
+  const existing = hospitalStore.find((h) => h.id === hospitalId);
+  if (!existing) {
     throw new Error("Hospital record could not be found.");
   }
 
-  const today = new Date().toISOString().slice(0, 10);
-
-  hospitalStore = hospitalStore.map((h) =>
-    h.id === hospitalId
-      ? {
-          ...h,
-          deletedAt: today,
-          invitationStatus:
-            h.invitationStatus === "pending" ? "withdrawn" : h.invitationStatus,
-          withdrawnAt:
-            h.invitationStatus === "pending" ? today : h.withdrawnAt,
-        }
-      : h
-  );
-
-  invitationStore = invitationStore.map((inv) =>
-    inv.hospitalId === hospitalId && inv.status === "pending"
-      ? { ...inv, status: "withdrawn", withdrawnAt: today }
-      : inv
-  );
+  hospitalStore = hospitalStore.filter((h) => h.id !== hospitalId);
 
   return {
     success: true,
     data: { deletedId: hospitalId },
-    message: `${hospital.name} (${hospital.organisationId}) has been deleted from active platform records.`,
+    message: `${existing.name} has been deleted.`,
   };
 }
 
 export async function handleUpdateHospital(
   input: UpdateHospitalInput
 ): Promise<ApiResponse<Hospital>> {
-  await simulateLatency(300);
+  await simulateLatency(280);
 
   const index = hospitalStore.findIndex((h) => h.id === input.id);
   if (index === -1) {
     throw new Error("Hospital record could not be found.");
   }
 
-  const normalizedOrgId = input.organisationId.trim().toUpperCase();
-  const duplicate = hospitalStore.some(
-    (h) => h.id !== input.id && h.organisationId.toUpperCase() === normalizedOrgId
+  const normalizedOrgId = input.organisationId.trim().toLowerCase();
+  const duplicate = hospitalStore.find(
+    (h) => h.id !== input.id && h.organisationId.toLowerCase() === normalizedOrgId
   );
 
   if (duplicate) {
     throw new Error(
-      `Organisation ID "${normalizedOrgId}" is already assigned to another hospital.`
+      `Taken by ${duplicate.name}, set up ${formatGridDate(duplicate.createdAt)}. Try ${normalizedOrgId}-nhs or ${normalizedOrgId}-ft.`
     );
   }
 
@@ -358,15 +300,4 @@ export async function handleUpdateHospital(
     data: updated,
     message: `${updated.name} has been updated.`,
   };
-}
-
-export function getNextSuggestedOrgId(): string {
-  const maxNum = hospitalStore.reduce((max, h) => {
-    const match = /^ORG-(\d+)$/i.exec(h.organisationId);
-    if (!match) return max;
-    const num = Number.parseInt(match[1], 10);
-    return Number.isNaN(num) ? max : Math.max(max, num);
-  }, 0);
-
-  return `ORG-${String(maxNum + 1).padStart(3, "0")}`;
 }

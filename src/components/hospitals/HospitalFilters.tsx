@@ -6,10 +6,9 @@ import type { DateRangeFilter } from "@/types/hospital";
 
 const DATE_FILTER_OPTIONS: Array<{ value: DateRangeFilter; label: string }> = [
   { value: "all", label: "All created dates" },
-  { value: "last_7_days", label: "Last 7 days" },
-  { value: "last_30_days", label: "Last 30 days" },
-  { value: "nov_2026", label: "November 2026" },
-  { value: "oct_2026", label: "October 2026" },
+  { value: "may_jun_2026", label: "May – Jun 2026" },
+  { value: "jul_aug_2026", label: "Jul – Aug 2026" },
+  { value: "sep_2026", label: "Sep 2026" },
 ];
 
 interface HospitalFiltersProps {
@@ -33,23 +32,23 @@ export function HospitalFilters({
         <button
           type="button"
           onClick={toggle}
-          className="inline-flex h-[34px] items-center gap-2 rounded-md border border-[var(--border-default)] bg-[var(--bg-input)] px-3 text-[13px] font-medium text-[var(--text-body)] transition-colors hover:border-[var(--border-input-hover)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1686D9]"
+          className="inline-flex h-[30px] items-center gap-[6px] rounded-[6px] border border-white/20 bg-[#1a1a1a] px-[10px] font-display text-[14px] font-medium leading-[20px] text-white transition-colors hover:bg-[#242424] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1c75b3]"
         >
-          <Filter className="h-3.5 w-3.5 text-[var(--text-subtle)]" />
+          <Filter strokeWidth={1.6} className="h-[14px] w-[14px] text-[#a0a0a0]" />
           <span>Filter</span>
           {hasActiveFilter && (
             <span
-              className="h-1.5 w-1.5 rounded-full bg-[#1686D9]"
+              className="h-1.5 w-1.5 rounded-full bg-[#1c75b3]"
               aria-label="Filter active"
             />
           )}
-          <ChevronDown className="h-3.5 w-3.5 text-[var(--text-muted)]" />
+          <ChevronDown strokeWidth={1.6} className="h-[13px] w-[13px] text-[#a0a0a0]" />
         </button>
       )}
     >
       {(close) => (
         <>
-          <div className="px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-[var(--text-muted)]">
+          <div className="px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-[#707070]">
             Created Date
           </div>
           {DATE_FILTER_OPTIONS.map((option) => {
@@ -65,19 +64,19 @@ export function HospitalFilters({
               >
                 <span className="flex items-center justify-between gap-2">
                   <span>{option.label}</span>
-                  {isActive && <Check className="h-3.5 w-3.5 text-[#1686D9]" />}
+                  {isActive && <Check className="h-3.5 w-3.5 text-[#1c75b3]" />}
                 </span>
               </DropdownItem>
             );
           })}
           {hasActiveFilter && (
-            <div className="mt-1 border-t border-[var(--border-subtle)] pt-1">
+            <div className="mt-1 border-t border-white/12 pt-1">
               <DropdownItem
                 onClick={() => {
                   onClearFilters();
                   close();
                 }}
-                className="text-[#1686D9] hover:text-[#0875C5] dark:text-[#60A5FA] dark:hover:text-[#93C5FD]"
+                className="text-[#1c75b3] hover:text-white"
               >
                 Clear filters
               </DropdownItem>

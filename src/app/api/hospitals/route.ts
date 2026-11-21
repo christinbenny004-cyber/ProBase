@@ -27,13 +27,13 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get("search") ?? "";
     const sortBy = (searchParams.get("sortBy") as HospitalSortField) ?? "createdAt";
     const sortDirection =
-      (searchParams.get("sortDirection") as SortDirection) ?? "desc";
+      (searchParams.get("sortDirection") as SortDirection) ?? "asc";
     const dateFilter =
       (searchParams.get("dateFilter") as DateRangeFilter) ?? "all";
     const viewMode =
       (searchParams.get("viewMode") as HospitalViewMode) ?? "active";
     const page = Number.parseInt(searchParams.get("page") ?? "1", 10);
-    const pageSize = Number.parseInt(searchParams.get("pageSize") ?? "10", 10);
+    const pageSize = Number.parseInt(searchParams.get("pageSize") ?? "50", 10);
     const simulateError = searchParams.get("simulateError") === "true";
 
     const response = await handleGetHospitals({
